@@ -6,31 +6,31 @@
 
 ## Возможности
 
-* **Импорт тестов из .xlsx**: название, описание, вопросы с весами и варианты с пометкой правильности. Формат ниже.;
-* **Админ-панель (Area = Admin)**: список тестов, создание/редактирование, активация/деактивация, QR/ссылка для старта в Telegram, выгрузка результатов.;
+* **Импорт тестов из .xlsx**: название, описание, вопросы с весами и варианты с пометкой правильности. Формат ниже;
+* **Админ-панель (Area = Admin)**: список тестов, создание/редактирование, активация/деактивация, QR/ссылка для старта в Telegram, выгрузка результатов;
 * **Проведение теста в Telegram**: пользователи заходят по deep-link `https://t.me/<bot>?start=test_<id>`, бот ведёт сессию, учитывает таймаут 1 минута на вопрос и считает баллы по весам.
 * **Экспорт результатов в Excel**:
 
     * по конкретному тесту (`/Admin/Tests/Export/{id}`),
     * все результаты (`/Admin/Tests/ExportAll`),
     * общий рейтинг по пользователям (`/Admin/Tests/ExportRating`).
-* **Антифлуд для Telegram**: глобальный rate-limit **28 запросов/сек** (token bucket) + корректная обработка `429 retry_after`.;
+* **Антифлуд для Telegram**: глобальный rate-limit **28 запросов/сек** (token bucket) + корректная обработка `429 retry_after`;
 
 ---
 
 ## Архитектура (коротко)
 
-* **Бэкенд**: ASP.NET Core + MVC (Area `Admin`) + Hosted Service для Telegram (`TelegramBackgroundService`).;
-* **Хранение**: EF Core + SQLite (`tests.db`), DbSet’ы: Tests, Questions, Options, UserTests, UserAnswers, UserProfiles.;
-* **Telegram**: long polling через `ITelegramBotClient`, обработка `Message` и `CallbackQuery`, inline-клавиатуры для вариантов. Сообщение с вопросом содержит подсказку по времени (`⏱ Осталось 01:00`).;
-* **Сессии**: на пользователя хранится состояние теста (вопросы, индекс, баллы, CancellationTokenSource для таймера вопроса). На таймаут записывается пропуск и переход к следующему вопросу.;
+* **Бэкенд**: ASP.NET Core + MVC (Area `Admin`) + Hosted Service для Telegram (`TelegramBackgroundService`);
+* **Хранение**: EF Core + SQLite (`tests.db`), DbSet’ы: Tests, Questions, Options, UserTests, UserAnswers, UserProfiles;
+* **Telegram**: long polling через `ITelegramBotClient`, обработка `Message` и `CallbackQuery`, inline-клавиатуры для вариантов. Сообщение с вопросом содержит подсказку по времени (`⏱ Осталось 01:00`);
+* **Сессии**: на пользователя хранится состояние теста (вопросы, индекс, баллы, CancellationTokenSource для таймера вопроса). На таймаут записывается пропуск и переход к следующему вопросу;
 * **Координатор**: фоновая задача каждые 10 сек запускает ожидающие попытки, а при деактивации теста корректно завершает незаконченные.
 
 ---
 
 ## Требования
 
-* .NET SDK 7/8
+* .NET SDK 9
 * SQLite (в файле, создаётся автоматически)
 * Telegram Bot Token и имя бота
 
@@ -61,14 +61,14 @@
 
 ```bash
 dotnet tool install --global dotnet-ef # если ещё не установлен
-dotnet ef migrations add Initial -p QuestTgChatBot.Dao -s QuestTgChatBot.App -c AppDbContext
-dotnet ef database update -p QuestTgChatBot.Dao -s QuestTgChatBot.App -c AppDbContext
+dotnet ef migrations add Initial -p TestTgChatBot.Dao -s TestTgChatBot.App -c AppDbContext
+dotnet ef database update -p TestTgChatBot.Dao -s TestTgChatBot.App -c AppDbContext
 ```
 
 3. **Сборка и запуск**
 
 ```bash
-cd /QuestTgChatBot.App/
+cd /TestTgChatBot.App/
 dotnet build -c Release
 dotnet run -c Release
 ```
@@ -97,13 +97,13 @@ dotnet run -c Release
 | ---------------- | ------- | ----------- | ----------- |
 | Столица Франции? | 1       | Париж\|true | Лион\|false |
 
-Кнопка загрузки: **Admin → Tests → Upload**. В ответ создаётся тест с вопросами/вариантами.;
+Кнопка загрузки: **Admin → Tests → Upload**. В ответ создаётся тест с вопросами/вариантами;
 
 ---
 
 ## Проведение теста в Telegram
 
-* Админ включает тест → пользователи регистрируются/стартуют по ссылке.;
+* Админ включает тест → пользователи регистрируются/стартуют по ссылке;
 * Deep-link формируется как `https://t.me/<bot>?start=test_<id>`. Ввод ФИО запрашивается, если профиля ещё нет.
 * На **каждый вопрос — 1 минута**: если ответа нет, записывается пропуск и бот переходит к следующему вопросу. Вопросы перемешиваются (Fisher–Yates).
 * Завершение: при таймауте последнего вопроса или деактивации теста админом — статус `Finished`, фиксация счёта, уведомление пользователю.
@@ -120,28 +120,28 @@ dotnet run -c Release
 
 ## Настройки производительности (рекомендации)
 
-* **Rate-limit Telegram**: уже включён глобальный token bucket на **28 req/s**. Не увеличивайте — упрётесь во внешние лимиты Telegram.;
+* **Rate-limit Telegram**: уже включён глобальный token bucket на **28 req/s**. Не увеличивайте — упрётесь во внешние лимиты Telegram;
 * **SQLite**: по умолчанию применён файл `tests.db`. Для высоких нагрузок рекомендуются WAL/таймаут/индексы (см. PRAGMA-интерсептор и индексы в вашем окружении).
-* **Параллельность**: пер-чатовые блокировки исключают гонки при одновременных апдейтах (`SemaphoreSlim` по chatId).;
+* **Параллельность**: пер-чатовые блокировки исключают гонки при одновременных апдейтах (`SemaphoreSlim` по chatId);
 
 ---
 
 ## Модель данных (основное)
 
 * **Test** → **Question**(1-N) → **TestOption**(1-N). Вес вопроса влияет на счёт.
-* **UserProfile** (TelegramUserId, Username, FullName, уникальный индекс на TelegramUserId).;
+* **UserProfile** (TelegramUserId, Username, FullName, уникальный индекс на TelegramUserId);
 * **UserTest** — попытка пользователя: `Pending`/`InProgress`/`Finished`, `StartedAt/FinishedAt`, `Score`. (Используется в Telegram-сервисе и экспортах.);
-* **UserAnswer** — выбранный вариант (или `null` при пропуске) и время ответа; PK — `Id`.;
+* **UserAnswer** — выбранный вариант (или `null` при пропуске) и время ответа; PK — `Id`;
 
 ---
 
 ## Частые вопросы
 
 **Как выдать ссылку пользователю на конкретный тест?**
-Откройте `/Admin/Tests`, в списке у каждого теста генерируется `TgTestLink` на основе `Telegram:BotUserName`.;
+Откройте `/Admin/Tests`, в списке у каждого теста генерируется `TgTestLink` на основе `Telegram:BotUserName`;
 
 **Где включается/выключается тест?**
-В админке: `Activate`/`Deactivate` — отмечают `IsActive`, проставляют `StartTime/EndTime`. Координатор подхватывает изменения автоматически.;
+В админке: `Activate`/`Deactivate` — отмечают `IsActive`, проставляют `StartTime/EndTime`. Координатор подхватывает изменения автоматически;
 
 **Что видит пользователь в Telegram?**
-Вопрос с inline-кнопками вариантов. Текст кнопок — сами варианты. При ответе — мгновенный переход к следующему вопросу или завершение.;
+Вопрос с inline-кнопками вариантов. Текст кнопок — сами варианты. При ответе — мгновенный переход к следующему вопросу или завершение;
