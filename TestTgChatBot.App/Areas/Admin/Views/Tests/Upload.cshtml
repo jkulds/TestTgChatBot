@@ -1,0 +1,13 @@
+﻿@model TestTgChatBot.App.Areas.Admin.ViewModels.UploadExcelViewModel
+
+<h2>Импорт теста из Excel</h2>
+<p>Шаблон: A1 — название, B1 — описание, строка 2 — заголовки, со строки 3 вопросы:<br/>
+    <code>QuestionText | Weight | Option1 (текст|true/false) | Option2 | ...</code></p>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <input type="file" class="form-control" name="File" accept=".xlsx" />
+    </div>
+    <button class="btn btn-primary">Импортировать</button>
+    @Html.AntiForgeryToken()
+</form>

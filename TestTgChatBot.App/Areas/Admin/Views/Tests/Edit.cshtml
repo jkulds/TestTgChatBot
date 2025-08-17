@@ -1,0 +1,207 @@
+﻿@model TestTgChatBot.App.Areas.Admin.ViewModels.TestEditViewModel
+@{
+  var isCreate = Model.Id == 0;
+  ViewData["Title"] = isCreate ? "Создание теста" : $"Редактирование теста #{Model.Id}";
+}
+
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<form method="post" asp-area="Admin" asp-controller="Tests" asp-action="@(isCreate ? "Create" : "Edit")"
+      asp-route-id="@Model.Id">
+  @Html.AntiForgeryToken()
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input asp-for="Name" class="form-control"/>
+        <span asp-validation-for="Name" class="text-danger"></span>
+      </div>
+      <div class="mb-0">
+        <label class="form-label">Описание</label>
+        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="questions">
+    @for (var i = 0; i < (Model.Questions?.Count ?? 0); i++)
+    {
+      Model.Questions[i].LocalId = i;
+
+      <partial name="_QuestionEditor" model="Model.Questions[i]"/>
+    }
+  </div>
+
+  @if (Model.Id == 0)
+  {
+    <div class="mb-3">
+      <button type="button" class="btn btn-outline-primary" onclick="addQuestion()">Добавить вопрос</button>
+    </div>
+  }
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-success" type="submit">Сохранить</button>
+    <a class="btn btn-secondary" asp-area="Admin" asp-controller="Tests" asp-action="Index">Отмена</a>
+  </div>
+</form>
+
+@section Scripts{
+  <script>
+    function removeBlock(btn, selector) {
+      const block = btn.closest(selector);
+      if (block) block.remove();
+    }
+
+    // ----- индексы -----
+    function nextQuestionIndex() {
+      const inputs = document.querySelectorAll('input[name="Questions.Index"]');
+      let next = 0;
+      inputs.forEach(inp => {
+        const v = parseInt(inp.value, 10);
+        if (!Number.isNaN(v) && v >= next) next = v + 1;
+      });
+      return next;
+    }
+
+    function nextOptionIndex(qIdx, root) {
+      const inputs = (root || document).querySelectorAll(`input[name="Questions[${qIdx}].Options.Index"]`);
+      let next = 0;
+      inputs.forEach(inp => {
+        const v = parseInt(inp.value, 10);
+        if (!Number.isNaN(v) && v >= next) next = v + 1;
+      });
+      return next;
+    }
+
+    // ----- добавление вопроса -----
+    function addQuestion() {
+      const qIdx = nextQuestionIndex();
+      const tpl = document.getElementById('tpl-question').content.cloneNode(true);
+
+      // проставляем name’ы
+      tpl.querySelectorAll('[data-repl]').forEach(el => {
+        el.name = el.getAttribute('data-repl').replace(/__q__/g, qIdx);
+      });
+      // подпись
+      tpl.querySelectorAll('[data-q-label]').forEach(el => {
+        el.textContent = el.textContent.replace(/__N__/g, (qIdx + 1));
+      });
+      // индекс и Id=0
+      tpl.querySelector('input[data-qindex="1"]').value = String(qIdx);
+      tpl.querySelector('input[data-qid="1"]').value = "0";
+
+      const host = document.getElementById('questions');
+      host.appendChild(tpl);
+
+      // добавим две опции по умолчанию
+      const lastQuestion = host.querySelectorAll('.question')[host.querySelectorAll('.question').length - 1];
+      addOptionTo(lastQuestion, qIdx);
+      addOptionTo(lastQuestion, qIdx);
+    }
+
+    // ----- добавление опции -----
+    function addOption(btn, qIdx) {
+      addOptionTo(btn.closest('.question'), qIdx);
+    }
+
+    function addOptionTo(questionEl, qIdx) {
+      const list = questionEl.querySelector('.options');
+      const next = nextOptionIndex(qIdx, questionEl);
+
+      const frag = document.getElementById('tpl-option').content.cloneNode(true);
+
+      frag.querySelectorAll('[data-repl]').forEach(el => {
+        const name = el.getAttribute('data-repl')
+          .replace(/__q__/g, qIdx)
+          .replace(/__o__/g, next);
+        el.setAttribute('name', name);
+      });
+
+      // выставляем значения индекса и Id=0
+      frag.querySelector('input[data-oidx="1"]').value = String(next);
+      frag.querySelector('input[data-oid="1"]').value = "0";
+
+      list.appendChild(frag);
+    }
+
+    // авто-добавление одного вопроса при создании (если нужно)
+    document.addEventListener('DOMContentLoaded', () => {
+      const isCreate = @Model.Id == 0;
+      const noQuestions = document.querySelectorAll('.question').length === 0;
+      if (isCreate && noQuestions) addQuestion();
+    });
+  </script>
+
+  <!-- шаблон вопроса -->
+  <template id="tpl-question">
+    <div class="card mb-3 question">
+      <div class="card-body">
+        <!-- индексы и Id вопроса -->
+        <input type="hidden" data-repl="Questions.Index" data-qindex="1"/>
+        <input type="hidden" data-repl="Questions[__q__].Id" data-qid="1"/>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-3" data-q-label>Вопрос __N__</h5>
+          @if (Model.Id == 0)
+          {
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeBlock(this, '.question')">Удалить
+              вопрос
+            </button>
+          }
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Текст вопроса</label>
+            <input class="form-control" data-repl="Questions[__q__].Text"/>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Вес</label>
+            <input class="form-control" type="number" min="1" step="1" data-repl="Questions[__q__].Weight" value="1"/>
+          </div>
+        </div>
+
+        @if (Model.Id == 0)
+        {
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>Варианты</strong>
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOption(this, __q__)">Добавить
+                вариант
+              </button>
+            </div>
+            <div class="options"><!-- сюда добавляются опции --></div>
+          </div>
+        }
+      </div>
+    </div>
+  </template>
+
+  <!-- шаблон опции -->
+  <template id="tpl-option">
+    <div class="row g-2 option mb-2">
+      <!-- индексы и Id опции -->
+      <input type="hidden" data-repl="Questions[__q__].Options.Index" data-oidx="1"/>
+      <input type="hidden" data-repl="Questions[__q__].Options[__o__].Id" data-oid="1"/>
+
+      <div class="col-md-9">
+        <input class="form-control" placeholder="Текст варианта" data-repl="Questions[__q__].Options[__o__].Text"/>
+      </div>
+      <div class="col-md-2 form-check d-flex align-items-center">
+        <!-- bool: hidden(false) + checkbox(true) -->
+        <input type="hidden" data-repl="Questions[__q__].Options[__o__].IsCorrect" value="false"/>
+        <input class="form-check-input" type="checkbox" data-repl="Questions[__q__].Options[__o__].IsCorrect"
+               value="true"/>
+        <label class="form-check-label ms-2">Правильный</label>
+      </div>
+      @if (Model.Id == 0)
+      {
+        <div class="col-md-1 d-flex align-items-center justify-content-end">
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="removeBlock(this, '.option')">✕
+          </button>
+        </div>
+      }
+    </div>
+  </template>
+}

@@ -1,0 +1,93 @@
+﻿@model IEnumerable<TestTgChatBot.App.Areas.Admin.ViewModels.TestsListViewModel>
+
+<div class="row mb-3">
+  <h2 class="mb-0 col-md-4">Тесты</h2>
+  <a class="btn btn-outline-secondary col-md-2" href="@Url.Action("ExportRating", "Tests", new { area = "Admin" })">
+    Экспорт рейтинга
+  </a>
+  <a class="btn btn-outline-secondary col-md-2" href="@Url.Action("ExportAll", "Tests", new { area = "Admin" })">
+    Экспорт всех результатов
+  </a>
+  <a class="btn btn-success col-md-2" href="@Url.Action("Create", "Tests", new { area = "Admin" })">Создать тест</a>
+  <a class="btn btn-primary col-md-2" href="@Url.Action("Upload", "Tests", new { area = "Admin" })">Импорт из Excel</a>
+</div>
+
+@if (!Model.Any())
+{
+  <div class="d-flex justify-content-center align-items-center mb-3">
+    <h2 class="mb-0">Ни одного теста еще не было добавлено.</h2>
+  </div>
+}
+else
+{
+  <table class="table table-sm table-hover bg-white">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название</th>
+      <th>Вопросов</th>
+      <th>Статус</th>
+      <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var t in Model)
+    {
+      <tr>
+        <td>@t.Id</td>
+        <td><a href="@Url.Action("Details", "Tests", new { id = t.Id, area = "Admin" })">@t.Name</a></td>
+        <td>@t.Questions</td>
+        <td>@(t.IsActive ? "✅ Включен" : "⛔ Выключен")</td>
+        <td class="text-nowrap">
+          @if (!t.IsDeleted)
+          {
+            @if (!t.IsActive)
+            {
+              <form class="d-inline" method="post" asp-area="Admin" asp-controller="Tests" asp-action="Activate"
+                    asp-route-id="@t.Id">
+                <button class="btn btn-success btn-sm" type="submit">Включить</button>
+                @Html.AntiForgeryToken()
+              </form>
+            }
+            else
+            {
+              <form class="d-inline" method="post" asp-area="Admin" asp-controller="Tests" asp-action="Deactivate"
+                    asp-route-id="@t.Id">
+                <button class="btn btn-warning btn-sm" type="submit">Выключить</button>
+                @Html.AntiForgeryToken()
+              </form>
+            }
+
+            <a class="btn btn-outline-primary btn-sm copy-link"
+               href="@t.TgTestLink"
+               data-link="@t.TgTestLink">Ссылка</a>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="@Url.Action("Qr", "Tests", new { id = t.Id, area = "Admin" })" target="_blank">QR</a>
+            <a class="btn btn-outline-success btn-sm" href="@Url.Action("Export", "Tests", new { id = t.Id })">
+              Результаты
+            </a>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="@Url.Action("CreateBasedOn", "Tests", new { id = t.Id, area = "Admin" })"
+               style="text-decoration: none;">📋</a>
+            <a class="btn btn-outline-info btn-sm"
+               href="@Url.Action("Edit", "Tests", new { id = t.Id, area = "Admin" })">✏️</a>
+            <form class="d-inline ms-1" method="post" asp-area="Admin" asp-controller="Tests" asp-action="Delete"
+                  asp-route-id="@t.Id" onsubmit="return confirm('Удалить тест @t.Name #[@t.Id]?');">
+              <button class="btn btn-outline-danger btn-sm" type="submit">🗑️</button>
+              @Html.AntiForgeryToken()
+            </form>
+          }
+          else
+          {
+            <a class="btn btn-outline-success btn-sm"
+               asp-area="Admin" asp-controller="Tests" asp-action="Export" asp-route-id="@t.Id">
+              Результаты
+            </a>
+            <a class="btn btn-outline-info btn-sm">Тест был удален, другие действия по нему недоступны.</a>
+          }
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+}

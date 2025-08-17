@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="EPPlus" Version="8.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.8" />
+      <PackageReference Include="QRCoder" Version="1.6.0" />
+      <PackageReference Include="System.Threading.RateLimiting" Version="9.0.8" />
+      <PackageReference Include="Telegram.Bot" Version="22.6.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TestTgChatBot.Dao\TestTgChatBot.Dao.csproj" />
+    </ItemGroup>
+
+</Project>

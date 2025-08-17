@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestTgChatBot.Business", "TestTgChatBot.Business\TestTgChatBot.Business.csproj", "{5D18E110-BF08-433B-8C9C-AC3FDB029AD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestTgChatBot.Dao", "TestTgChatBot.Dao\TestTgChatBot.Dao.csproj", "{62E0B78E-AF6B-4CA3-A43B-673CDABC0996}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestTgChatBot.App", "TestTgChatBot.App\TestTgChatBot.App.csproj", "{C7365351-EE64-4442-81E9-53659DC758ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D18E110-BF08-433B-8C9C-AC3FDB029AD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D18E110-BF08-433B-8C9C-AC3FDB029AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D18E110-BF08-433B-8C9C-AC3FDB029AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D18E110-BF08-433B-8C9C-AC3FDB029AD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62E0B78E-AF6B-4CA3-A43B-673CDABC0996}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62E0B78E-AF6B-4CA3-A43B-673CDABC0996}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62E0B78E-AF6B-4CA3-A43B-673CDABC0996}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62E0B78E-AF6B-4CA3-A43B-673CDABC0996}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7365351-EE64-4442-81E9-53659DC758ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7365351-EE64-4442-81E9-53659DC758ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7365351-EE64-4442-81E9-53659DC758ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7365351-EE64-4442-81E9-53659DC758ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

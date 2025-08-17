@@ -1,0 +1,42 @@
+﻿@model TestTgChatBot.Dao.Models.Test
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Тест #@Model.Id — @Model.Name</h2>
+    <div>
+        <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Link","Tests", new { id=Model.Id, area="Admin"})" target="_blank">Ссылка</a>
+        <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Qr","Tests", new { id=Model.Id, area="Admin"})" target="_blank">QR</a>
+    </div>
+</div>
+
+<p class="text-muted">@Model.Description</p>
+<p>Статус: @(Model.IsActive ? "✅ Включен" : "⛔ Выключен")</p>
+
+<table class="table table-sm table-striped bg-white">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Вопрос (вес)</th>
+        <th>Варианты</th>
+    </tr>
+    </thead>
+    <tbody>
+    @{
+        var i = 1;
+        foreach (var q in Model.Questions.OrderBy(q=>q.Id))
+        {
+            <tr>
+                <td>@i</td>
+                <td>@q.Text <span class="badge bg-secondary">@q.Weight</span></td>
+                <td>
+                    <ul class="mb-0">
+                        @foreach (var o in q.Options)
+                        {
+                            <li>@o.Text @(o.IsCorrect ? "✅" : "")</li>
+                        }
+                    </ul>
+                </td>
+            </tr>
+            i++;
+        }
+    }
+    </tbody>
+</table>

@@ -1,0 +1,27 @@
+﻿@model TestTgChatBot.App.Areas.Auth.ViewModels.LoginViewModel
+@{
+    Layout = "_Layout";
+    var returnUrl = (string?)ViewData["ReturnUrl"] ?? "/Admin";
+}
+
+<div class="d-flex justify-content-center">
+    <h3>Вход в админ-панель</h3>
+</div>
+<div class="row">
+    <div class="offset-4 col-md-4">
+        <form method="post" asp-action="Login" asp-controller="Auth" asp-route-returnUrl="@returnUrl">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label class="form-label">Логин</label>
+                <input asp-for="Username" class="form-control" autofocus/>
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <input asp-for="Password" class="form-control" type="password"/>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <button class="btn btn-primary">Войти</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TestTgChatBot.Business\TestTgChatBot.Business.csproj" />
+      <ProjectReference Include="..\TestTgChatBot.Dao\TestTgChatBot.Dao.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+      <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Areas\Admin\Views\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Admin\Views\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Admin\Views\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Admin\Views\Upload.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Admin\Views\_ViewImports.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Admin\Views\_ViewStart.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Tests\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Tests\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Tests\Upload.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Tests\_ViewImports.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Tests\_ViewStart.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Views\Auth\Login.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Default\Views\Auth\Login.cshtml" />
+    </ItemGroup>
+
+</Project>

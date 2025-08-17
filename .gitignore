@@ -1,0 +1,62 @@
+﻿# Сборка и bin/obj
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.log
+*.pdb
+
+# db
+*.db
+
+# Пользовательские настройки VS/VSCode/Rider
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# Кэш пакетов/сборок
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# EF Core миграции временные файлы
+Migrations/**/Snapshot.cs
+
+# SQLite база и вспомогательные файлы
+tests.db
+tests.db-shm
+tests.db-wal
+
+# Конфигурации с секретами
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# Системные
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Логи и дампы
+*.log
+*.csv
+*.bak
+*.tmp
+*.swp
+*.swo
+*.db-wal
+*.db-shm
+
+# Папка publish
+publish/
+*.pubxml
+*.publishproj
