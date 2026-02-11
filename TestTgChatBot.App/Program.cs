@@ -20,6 +20,17 @@ builder.Services.AddHttpClient("telegram")
         PooledConnectionLifetime = TimeSpan.FromMinutes(5)
     });
 
+builder.Services.AddSingleton<ITelegramBotClient>(sp =>
+{
+    var token = configuration["Telegram:BotToken"]
+                ?? throw new InvalidOperationException("Missing Telegram:Token in configuration");
+
+    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("telegram");
+
+    var options = new TelegramBotClientOptions(token);
+    return new TelegramBotClient(options, http);
+});
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -31,17 +42,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
     });
-
-builder.Services.AddSingleton<ITelegramBotClient>(sp =>
-{
-    var token = configuration["Telegram:BotToken"]
-                ?? throw new InvalidOperationException("Missing Telegram:Token in configuration");
-
-    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("telegram");
-
-    var options = new TelegramBotClientOptions(token);
-    return new TelegramBotClient(options, http);
-});
 
 builder.Services.AddTransient<IExcelImportService, ExcelImportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();

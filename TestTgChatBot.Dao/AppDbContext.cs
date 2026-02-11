@@ -19,7 +19,7 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         options.UseSqlite("Data Source=tests.db;Cache=Shared;Pooling=True");
-        options.AddInterceptors(new SqlitePragmaInterceptor()); // NEW
+        options.AddInterceptors(new SqlitePragmaInterceptor());
     }
 
     public DbSet<Test> Tests => Set<Test>();

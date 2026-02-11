@@ -295,7 +295,8 @@ public class TelegramBackgroundService(
             _pendingStart[chatId] = requestedTestId.Value;
 
         _awaitingName[chatId] = true;
-        await BotSendMessage(chatId, "Пожалуйста, введите ваше ФИО:", null, ct);
+        await BotSendMessage(chatId, "Пожалуйста, введите ваше ФИО и номер школы.\n" +
+                                     "Пример: Иванов Иван СОШ № 777", null, ct);
     }
 
     private async Task ProcessNameAwaitingMessage(CancellationToken ct, string text, long chatId, Message msg,
@@ -306,7 +307,7 @@ public class TelegramBackgroundService(
         {
             await BotSendMessage(
                 chatId,
-                "Введены некорректные данные. Введите ФИО в формате «Петров Алексей».",
+                "Введены некорректные данные. Введите ФИО в формате «Иванов Иван СОШ № 777».",
                 null,
                 ct);
             return;
