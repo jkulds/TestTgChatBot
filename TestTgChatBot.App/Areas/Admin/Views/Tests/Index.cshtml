@@ -62,7 +62,9 @@ else
                href="@t.TgTestLink"
                data-link="@t.TgTestLink">Ссылка</a>
             <a class="btn btn-outline-secondary btn-sm"
-               href="@Url.Action("Qr", "Tests", new { id = t.Id, area = "Admin" })" target="_blank">QR</a>
+               href="@Url.Action("Qr", "Tests", new { id = t.Id, area = "Admin" })" target="_blank" title="QR для Telegram">Tg QR</a>
+            <a class="btn btn-outline-dark btn-sm"
+               href="@Url.Page("/Admin/TestLink", new { testId = t.Id, area = "" })" target="_blank" title="QR для Web">Web QR</a>
             <a class="btn btn-outline-success btn-sm" href="@Url.Action("Export", "Tests", new { id = t.Id })">
               Результаты
             </a>
@@ -79,10 +81,10 @@ else
           }
           else
           {
-            <a class="btn btn-outline-success btn-sm"
-               asp-area="Admin" asp-controller="Tests" asp-action="Export" asp-route-id="@t.Id">
-              Результаты
-            </a>
+            <a asp-action="Details" asp-route-id="@t.Id" class="btn btn-sm btn-info">Инфо</a>
+            <a asp-action="Edit" asp-route-id="@t.Id" class="btn btn-sm btn-warning">Изм</a>
+            <a asp-action="WebQr" asp-route-id="@t.Id" class="btn btn-sm btn-secondary" title="Печать QR для веба">QR (Web)</a>
+            <a asp-action="Qr" asp-route-id="@t.Id" class="btn btn-sm btn-outline-secondary" title="QR для бота">QR (Bot)</a>
             <a class="btn btn-outline-info btn-sm">Тест был удален, другие действия по нему недоступны.</a>
           }
         </td>

@@ -45,6 +45,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddTransient<IExcelImportService, ExcelImportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
+builder.Services.AddScoped<IWebTestService, WebTestService>();
 builder.Services.AddHostedService<TelegramBackgroundService>();
 
 builder.WebHost.ConfigureKestrel(options => { options.ListenLocalhost(5000); });
@@ -81,6 +82,8 @@ app.MapGet("/", async x =>
     await Task.CompletedTask;
 });
 
+app.MapRazorPages();
+app.MapRazorPages();
 app.MapDefaultControllerRoute();
 
 app.Run();

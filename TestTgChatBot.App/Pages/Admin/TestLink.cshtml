@@ -1,0 +1,86 @@
+@page "{testId:int}"
+@model TestTgChatBot.App.Pages.Admin.TestLinkModel
+@{
+    Layout = "_Layout"; // Admin layout
+    ViewData["Title"] = "QR Код для теста";
+}
+
+<div class="container-fluid">
+    <div class="no-print mb-4">
+        <h2>QR Коды: @Model.TestName</h2>
+        
+        <div class="card p-3 mb-4">
+            <form method="post" class="row align-items-end">
+                <div class="col-auto">
+                    <label class="form-label">Создать еще ссылок:</label>
+                    <input type="number" name="count" value="10" class="form-control" min="1" max="50" />
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Сгенерировать</button>
+                    <button type="button" onclick="window.print()" class="btn btn-success ms-2">Печать (@Model.UnusedTokens.Count шт.)</button>
+                    <button type="button" onclick="window.history.back()" class="btn btn-secondary ms-2">Назад</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Grid for QR codes -->
+    <div class="d-flex flex-wrap">
+        @foreach (var item in Model.UnusedTokens)
+        {
+            <div class="qr-item">
+                <img src="data:image/png;base64,@Convert.ToBase64String(item.QrCode)" class="qr-img" />
+                <div class="mt-2 text-muted small user-select-all">@item.Token.Substring(0, 8)...</div>
+            </div>
+        }
+        @if (!Model.UnusedTokens.Any())
+        {
+            <div class="alert alert-info no-print">Нет активных неиспользованных ссылок. Сгенерируйте новые.</div>
+        }
+    </div>
+</div>
+
+<style>
+    .qr-item {
+        width: 180px;
+        border: 1px dashed #ccc;
+        padding: 10px;
+        margin: 5px;
+        text-align: center;
+        page-break-inside: avoid;
+        display: inline-block;
+    }
+    .qr-img {
+        width: 120px;
+        height: 120px;
+    }
+
+    @@media print {
+        /* Hide everything by default, then show what we want? 
+           Better to specificy no-print for admin UI. 
+           But Admin Layout might have headers/sidebars.
+           We need to hide them. Assume standard bootstrap classes or custom admin classes.
+        */
+        body * {
+            visibility: hidden;
+        }
+        .container-fluid, .container-fluid * {
+            visibility: visible;
+        }
+        .container-fluid {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .no-print { display: none !important; }
+        .qr-item { border: 1px solid #000; margin: 10px; }
+        
+        /* Hide Admin Layout specific elements if known, 
+           or use the body visibility trick above which is aggressive but effective for "just print this content" */
+        header, footer, nav, aside, .sidebar { display: none !important; }
+    }
+</style>

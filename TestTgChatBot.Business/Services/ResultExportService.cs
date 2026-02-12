@@ -28,6 +28,7 @@ namespace TestTgChatBot.Business.Services
                 .Select(ut => new
                 {
                     ut.Id,
+                    ut.UserProfile,
                     ut.UserProfile.FullName,
                     ut.UserProfile.Username,
                     ut.UserProfile.TelegramUserId,
@@ -44,7 +45,7 @@ namespace TestTgChatBot.Business.Services
             ws.Cells["A1"].Style.Font.Bold = true;
             ws.Cells["A1"].Style.Font.Size = 14;
 
-            object[] header = ["№", "ФИО", "Telegram логин", "TelegramId", "Начато", "Завершено", "Баллы", "Из макс."];
+            object[] header = ["№", "ФИО", "Телефон", "Школа/Орг.", "Telegram логин", "TelegramId", "Начато", "Завершено", "Баллы", "Из макс."];
             ws.Cells["A3"].LoadFromArrays([header]);
             using (var r = ws.Cells[3, 1, 4, header.Length])
             {
@@ -59,14 +60,16 @@ namespace TestTgChatBot.Business.Services
             {
                 ws.Cells[row, 1].Value = i++;
                 ws.Cells[row, 2].Value = r.FullName;
-                ws.Cells[row, 3].Value = r.Username;
-                ws.Cells[row, 4].Value = r.TelegramUserId;
-                ws.Cells[row, 5].Value = r.StartedAt?.ToLocalTime();
-                ws.Cells[row, 5].Style.Numberformat.Format = ExcelDateTimeFormat;
-                ws.Cells[row, 6].Value = r.FinishedAt?.ToLocalTime();
-                ws.Cells[row, 6].Style.Numberformat.Format = ExcelDateTimeFormat;
-                ws.Cells[row, 7].Value = r.Score;
-                ws.Cells[row, 8].Value = maxScore;
+                ws.Cells[row, 3].Value = r.UserProfile.PhoneNumber;
+                ws.Cells[row, 4].Value = r.UserProfile.SchoolName;
+                ws.Cells[row, 5].Value = r.Username;
+                ws.Cells[row, 6].Value = r.TelegramUserId;
+                ws.Cells[row, 7].Value = r.StartedAt?.ToLocalTime();
+                ws.Cells[row, 7].Style.Numberformat.Format = ExcelDateTimeFormat;
+                ws.Cells[row, 8].Value = r.FinishedAt?.ToLocalTime();
+                ws.Cells[row, 8].Style.Numberformat.Format = ExcelDateTimeFormat;
+                ws.Cells[row, 9].Value = r.Score;
+                ws.Cells[row, 10].Value = maxScore;
                 row++;
             }
 
@@ -95,6 +98,7 @@ namespace TestTgChatBot.Business.Services
                     ut.Id,
                     ut.TestId,
                     TestName = ut.Test.Name,
+                    ut.UserProfile,
                     ut.UserProfile.FullName,
                     ut.UserProfile.Username,
                     ut.UserProfile.TelegramUserId,
@@ -113,6 +117,8 @@ namespace TestTgChatBot.Business.Services
                 "Тест",
                 "ID теста",
                 "ФИО",
+                "Телефон",
+                "Школа/Орг.",
                 "Telegram логин",
                 "Telegram Id",
                 "Начато",
@@ -139,14 +145,16 @@ namespace TestTgChatBot.Business.Services
                 ws.Cells[row, 2].Value = x.TestName;
                 ws.Cells[row, 3].Value = x.TestId;
                 ws.Cells[row, 4].Value = x.FullName;
-                ws.Cells[row, 5].Value = x.Username;
-                ws.Cells[row, 6].Value = x.TelegramUserId;
-                ws.Cells[row, 7].Value = x.StartedAt?.ToLocalTime();
-                ws.Cells[row, 7].Style.Numberformat.Format = ExcelDateTimeFormat;
-                ws.Cells[row, 8].Value = x.FinishedAt?.ToLocalTime();
-                ws.Cells[row, 8].Style.Numberformat.Format = ExcelDateTimeFormat;
-                ws.Cells[row, 9].Value = x.Score;
-                ws.Cells[row, 10].Value = max;
+                ws.Cells[row, 5].Value = x.UserProfile.PhoneNumber;
+                ws.Cells[row, 6].Value = x.UserProfile.SchoolName;
+                ws.Cells[row, 7].Value = x.Username;
+                ws.Cells[row, 8].Value = x.TelegramUserId;
+                ws.Cells[row, 9].Value = x.StartedAt?.ToLocalTime();
+                ws.Cells[row, 9].Style.Numberformat.Format = ExcelDateTimeFormat;
+                ws.Cells[row, 10].Value = x.FinishedAt?.ToLocalTime();
+                ws.Cells[row, 10].Style.Numberformat.Format = ExcelDateTimeFormat;
+                ws.Cells[row, 11].Value = x.Score;
+                ws.Cells[row, 12].Value = max;
                 row++;
             }
 
@@ -167,13 +175,15 @@ namespace TestTgChatBot.Business.Services
                 .Include(x => x.UserProfile)
                 .Include(x => x.Test)
                 .Where(x => x.Status == UserTestStatus.Finished)
-                .GroupBy(x => x.UserProfile.Username)
-                .ToDictionaryAsync(x => x.Key!, y => (
+                .GroupBy(x => x.UserProfile.TelegramUserId)
+                .ToDictionaryAsync(x => x.Key, y => (
                     passedTests: y.Count(),
                     totalScore: y.Sum(x => x.Score),
                     testIds: y.Select(x => x.TestId).ToHashSet(),
-                    userId: y.First().UserProfile.TelegramUserId,
-                    fullName: y.First().UserProfile.FullName), ct);
+                    userId: y.Key,
+                    fullName: y.First().UserProfile.FullName,
+                    username: y.First().UserProfile.Username,
+                    phoneNumber: y.First().UserProfile.PhoneNumber), ct);
 
 
             using var pkg = new ExcelPackage();
@@ -184,6 +194,7 @@ namespace TestTgChatBot.Business.Services
                 "№",
                 "Количество пройденных тестов",
                 "ФИО",
+                "Телефон",
                 "Telegram логин",
                 "Telegram Id",
                 "Набранные баллы",
@@ -207,10 +218,11 @@ namespace TestTgChatBot.Business.Services
                 ws.Cells[row, 1].Value = i++;
                 ws.Cells[row, 2].Value = groupedRow.Value.passedTests;
                 ws.Cells[row, 3].Value = groupedRow.Value.fullName;
-                ws.Cells[row, 4].Value = groupedRow.Key;
-                ws.Cells[row, 5].Value = groupedRow.Value.userId;
-                ws.Cells[row, 6].Value = groupedRow.Value.totalScore;
-                ws.Cells[row, 7].Value = possibleMaxScore;
+                ws.Cells[row, 4].Value = groupedRow.Value.phoneNumber;
+                ws.Cells[row, 5].Value = groupedRow.Value.username;
+                ws.Cells[row, 6].Value = groupedRow.Value.userId;
+                ws.Cells[row, 7].Value = groupedRow.Value.totalScore;
+                ws.Cells[row, 8].Value = possibleMaxScore;
                 row++;
             }
 

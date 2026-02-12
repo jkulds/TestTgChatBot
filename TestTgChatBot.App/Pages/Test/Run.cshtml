@@ -1,0 +1,102 @@
+@page
+@model TestTgChatBot.App.Pages.Test.RunModel
+@{
+    Layout = "_TestLayout";
+    ViewData["Title"] = "Тестирование";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            @if (Model.CurrentQuestion != null)
+            {
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Вопрос @(Model.CurrentQuestionIndex + 1) из @Model.TotalQuestions</h5>
+                    <span id="timer" class="badge bg-danger fs-5">01:00</span>
+                </div>
+            }
+            
+            <div class="card-body">
+                @if (Model.CurrentQuestion != null)
+                {
+                    <h4 class="card-title mb-4">@Model.CurrentQuestion.Text</h4>
+
+                    <form method="post" id="questionForm">
+                        <input type="hidden" asp-for="CurrentQuestionId" value="@Model.CurrentQuestion.Id" />
+                        
+                        <div class="list-group mb-4">
+                            @foreach (var option in Model.CurrentQuestion.Options)
+                            {
+                                <label class="list-group-item list-group-item-action">
+                                    <input class="form-check-input me-1" type="checkbox" name="SelectedOptionIds" value="@option.Id">
+                                    @option.Text
+                                </label>
+                            }
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Ответить</button>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <h2 class="display-5 text-success mb-3">Тест завершен!</h2>
+                        <p class="lead">Спасибо за участие.</p>
+                    </div>
+                }
+            </div>
+
+            @if (Model.CurrentQuestion != null)
+            {
+                <div class="card-footer text-muted">
+                     Осталось времени на тест: <span id="totalTimer"></span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.CurrentQuestion != null)
+{
+    @section Scripts {
+        <script>
+            // 1 minute per question
+            let timeLeft = 60;
+            const timerElement = document.getElementById('timer');
+            const form = document.getElementById('questionForm');
+            const totalTimerElement = document.getElementById('totalTimer');
+            
+            // Server calculates exact remaining time to avoid timezone issues
+            let totalTimeLeft = @Math.Floor(Model.TotalSecondsRemaining);
+            
+            function updateTimer() {
+                // Per-question timer
+                if (timeLeft <= 0) {
+                    form.submit();
+                    return;
+                }
+                
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                // Total timer
+                if (totalTimeLeft <= 0) {
+                    form.submit();
+                    return;
+                }
+
+                totalTimeLeft--;
+                const totalMinutes = Math.floor(totalTimeLeft / 60);
+                const totalSeconds = Math.floor(totalTimeLeft % 60);
+                totalTimerElement.textContent = `${totalMinutes}:${totalSeconds < 10 ? '0' : ''}${totalSeconds}`;
+            }
+
+            setInterval(updateTimer, 1000);
+            updateTimer(); // Initial call
+        </script>
+    }
+}

@@ -1,0 +1,56 @@
+@page "{token:guid}"
+@model TestTgChatBot.App.Pages.Test.EntryModel
+@{
+    Layout = "_TestLayout";
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h2 class="text-center mb-4">Вход в тестирование</h2>
+            
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
+
+            @if (Model.TestToken != null && !Model.TestToken.IsUsed)
+            {
+                <form method="post">
+                    <div class="mb-3">
+                        <label asp-for="Input.PhoneNumber" class="form-label">Номер телефона</label>
+                        <input asp-for="Input.PhoneNumber" class="form-control" placeholder="+79000000000" required />
+                        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.FullName" class="form-label">ФИО</label>
+                        <input asp-for="Input.FullName" class="form-control" placeholder="Иванов Иван Иванович" required />
+                        <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.SchoolName" class="form-label">Школа / Организация</label>
+                        <input asp-for="Input.SchoolName" class="form-control" placeholder="МБОУ СОШ №1" required />
+                        <span asp-validation-for="Input.SchoolName" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Начать тест</button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    Ссылка недействительна или уже была использована.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

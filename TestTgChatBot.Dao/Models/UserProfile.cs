@@ -21,6 +21,12 @@ public class UserProfile
     /// </summary>
     [Required, MaxLength(200)]
     public string? FullName { get; set; } = null!;
+
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(200)]
+    public string? SchoolName { get; set; }
     
     public DateTime CreatedAt { get; set; }
 

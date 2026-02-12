@@ -28,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<UserTest> UserTests => Set<UserTest>();
     public DbSet<UserAnswer> UserAnswers => Set<UserAnswer>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    public DbSet<TestAccessToken> TestAccessTokens => Set<TestAccessToken>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

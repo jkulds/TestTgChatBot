@@ -16,14 +16,16 @@ namespace TestTgChatBot.App.Areas.Admin.Controllers
         private readonly AppDbContext _db;
         private readonly IExcelExportService _excelExportService;
         private readonly IExcelImportService _excelImportService;
+        private readonly IWebTestService _webTestService;
         private readonly string _botUserName;
 
-        public TestsController(AppDbContext db, IConfiguration cfg, IExcelExportService excelExportService, IExcelImportService excelImportService)
+        public TestsController(AppDbContext db, IConfiguration cfg, IExcelExportService excelExportService, IExcelImportService excelImportService, IWebTestService webTestService)
         {
             _botUserName = cfg["Telegram:BotUserName"] ?? throw new ArgumentNullException("Telegram:BotUserName");
             _db = db;
             _excelExportService = excelExportService;
             _excelImportService = excelImportService;
+            _webTestService = webTestService;
         }
 
         public async Task<IActionResult> Index(CancellationToken ct)
@@ -106,6 +108,52 @@ namespace TestTgChatBot.App.Areas.Admin.Controllers
             var data = gen.CreateQrCode(link, QRCodeGenerator.ECCLevel.Q);
             var png = new PngByteQRCode(data).GetGraphic(10);
             return File(png, "image/png", $"test_{id}.png");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> WebQr(int id, CancellationToken ct)
+        {
+            var test = await _db.Tests.FindAsync([id], ct);
+            if (test == null) return NotFound();
+            return View(test);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> WebQr(int id, int count, CancellationToken ct)
+        {
+            var test = await _db.Tests.FindAsync([id], ct);
+            if (test == null) return NotFound();
+
+            if (count <= 0 || count > 100) count = 10;
+
+            var codes = new List<(string Token, byte[] QrCode)>();
+            
+            // Generate tokens
+            // Using loop because we need individual QR codes
+            using var gen = new QRCodeGenerator();
+            
+            for (int i = 0; i < count; i++)
+            {
+                await _webTestService.GenerateTokenAsync(id);
+            }
+
+            // Get ALL unused tokens for this test
+            var unusedTokens = await _webTestService.GetUnusedTokensAsync(id);
+            
+            foreach (var token in unusedTokens)
+            {
+                // URL: https://HOST/Test/Entry/GUID
+                var url = Url.PageLink("/Test/Entry", values: new { token = token.Id }) 
+                          ?? $"{Request.Scheme}://{Request.Host}/Test/Entry/{token.Id}";
+
+                var data = gen.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+                var png = new PngByteQRCode(data).GetGraphic(5);
+                
+                codes.Add((token.Id.ToString(), png));
+            }
+
+            ViewBag.TestName = test.Name;
+            return View("WebQrPrint", codes);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -324,10 +372,6 @@ namespace TestTgChatBot.App.Areas.Admin.Controllers
 
                 if (q.Options != null && q.Options.All(o => !o.IsCorrect))
                     ModelState.AddModelError($"Questions[{i}].Options", "Должен быть хотя бы один правильный вариант.");
-
-                if (q.Options != null && q.Options.Count(o => o.IsCorrect) > 1)
-                    ModelState.AddModelError($"Questions[{i}].Options",
-                        "В вопросе должен быть только один правильный ответ.");
             }
         }
         
