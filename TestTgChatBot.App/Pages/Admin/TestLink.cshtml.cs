@@ -59,7 +59,7 @@ public class TestLinkModel : PageModel
         foreach (var token in tokens)
         {
             var path = Url.Content($"~/Test/Entry/{token.Id}");
-            var url = $"{Request.Scheme}://{Request.Host}{path}";
+            var url = $"https://{Request.Host}{path}";
 
             var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
             var qrCode = new PngByteQRCode(qrCodeData);

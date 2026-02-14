@@ -53,6 +53,10 @@ public class EntryModel : PageModel
         {
             ErrorMessage = "Срок действия токена истек.";
         }
+        else if (TestToken.Test != null && !TestToken.Test.IsActive)
+        {
+            ErrorMessage = "Этот тест в данный момент не активен.";
+        }
 
         return Page();
     }
@@ -63,6 +67,12 @@ public class EntryModel : PageModel
         if (TestToken == null || TestToken.IsUsed || TestToken.ExpiresAt < DateTime.UtcNow)
         {
             ErrorMessage = "Ссылка недействительна.";
+            return Page();
+        }
+        
+        if (TestToken.Test != null && !TestToken.Test.IsActive)
+        {
+            ErrorMessage = "Этот тест в данный момент не активен.";
             return Page();
         }
 

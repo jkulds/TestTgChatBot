@@ -144,7 +144,7 @@ namespace TestTgChatBot.App.Areas.Admin.Controllers
             {
                 // URL: https://HOST/Test/Entry/GUID
                 var path = Url.Content($"~/Test/Entry/{token.Id}");
-                var url = $"{Request.Scheme}://{Request.Host}{path}";
+                var url = $"https://{Request.Host}{path}";
 
                 var data = gen.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 var png = new PngByteQRCode(data).GetGraphic(5);
