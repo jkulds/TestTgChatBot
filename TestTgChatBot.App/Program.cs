@@ -13,23 +13,28 @@ var configuration = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpClient("telegram")
-    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+if (configuration["Telegram:Enabled"] == "true")
+{
+    builder.Services.AddHttpClient("telegram")
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            MaxConnectionsPerServer = 100,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        });
+
+    builder.Services.AddSingleton<ITelegramBotClient>(sp =>
     {
-        MaxConnectionsPerServer = 100,
-        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        var token = configuration["Telegram:BotToken"]
+                    ?? throw new InvalidOperationException("Missing Telegram:Token in configuration");
+
+        var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("telegram");
+
+        var options = new TelegramBotClientOptions(token);
+        return new TelegramBotClient(options, http);
     });
 
-builder.Services.AddSingleton<ITelegramBotClient>(sp =>
-{
-    var token = configuration["Telegram:BotToken"]
-                ?? throw new InvalidOperationException("Missing Telegram:Token in configuration");
-
-    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("telegram");
-
-    var options = new TelegramBotClientOptions(token);
-    return new TelegramBotClient(options, http);
-});
+    builder.Services.AddHostedService<TelegramBackgroundService>();
+}
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -46,9 +51,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddTransient<IExcelImportService, ExcelImportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IWebTestService, WebTestService>();
-builder.Services.AddHostedService<TelegramBackgroundService>();
 
-builder.WebHost.ConfigureKestrel(options => { options.ListenLocalhost(5000); });
+// builder.WebHost.ConfigureKestrel(options => { options.ListenLocalhost(5000); });
 
 var app = builder.Build();
 
@@ -82,7 +86,6 @@ app.MapGet("/", async x =>
     await Task.CompletedTask;
 });
 
-app.MapRazorPages();
 app.MapRazorPages();
 app.MapDefaultControllerRoute();
 

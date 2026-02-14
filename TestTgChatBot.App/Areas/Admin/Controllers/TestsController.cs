@@ -143,8 +143,8 @@ namespace TestTgChatBot.App.Areas.Admin.Controllers
             foreach (var token in unusedTokens)
             {
                 // URL: https://HOST/Test/Entry/GUID
-                var url = Url.PageLink("/Test/Entry", values: new { token = token.Id }) 
-                          ?? $"{Request.Scheme}://{Request.Host}/Test/Entry/{token.Id}";
+                var path = Url.Content($"~/Test/Entry/{token.Id}");
+                var url = $"{Request.Scheme}://{Request.Host}{path}";
 
                 var data = gen.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
                 var png = new PngByteQRCode(data).GetGraphic(5);

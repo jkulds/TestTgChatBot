@@ -55,15 +55,15 @@ public class TestLinkModel : PageModel
     {
         var tokens = await _webTestService.GetUnusedTokensAsync(testId);
         var qrGenerator = new QRCodeGenerator();
-        var baseUrl = Url.PageLink("/Test/Entry", values: new { token = "TOKEN_PLACEHOLDER" })?.Replace("TOKEN_PLACEHOLDER", "") 
-                      ?? $"{Request.Scheme}://{Request.Host}/Test/Entry/";
-
+        
         foreach (var token in tokens)
         {
-            var url = baseUrl + token.Id;
+            var path = Url.Content($"~/Test/Entry/{token.Id}");
+            var url = $"{Request.Scheme}://{Request.Host}{path}";
+
             var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
             var qrCode = new PngByteQRCode(qrCodeData);
-            var qrCodeBytes = qrCode.GetGraphic(5);
+            var qrCodeBytes = qrCode.GetGraphic(3);
             
             UnusedTokens.Add((token.Id.ToString(), qrCodeBytes));
         }
