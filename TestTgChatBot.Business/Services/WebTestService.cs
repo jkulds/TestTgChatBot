@@ -125,15 +125,25 @@ public class WebTestService : IWebTestService
 
     public async Task SubmitAnswerAsync(int userTestId, int questionId, List<int> selectedOptionIds)
     {
-        var userTest = await _db.UserTests.FindAsync(userTestId);
+        var userTest = await _db.UserTests
+            .Include(ut => ut.Test)
+            .FirstOrDefaultAsync(ut => ut.Id == userTestId);
+            
         if (userTest == null || userTest.Status != UserTestStatus.InProgress) return;
 
-        // Check global time limit (30 mins)
-        if (userTest.StartedAt.HasValue && (DateTime.UtcNow - userTest.StartedAt.Value).TotalMinutes > 30)
+        // Check if test is still active
+        if (!userTest.Test.IsActive)
         {
             await FinishTestAsync(userTestId);
             return;
         }
+
+        // Check global time limit (removed as per request, but keeping method signature)
+        // if (userTest.StartedAt.HasValue && (DateTime.UtcNow - userTest.StartedAt.Value).TotalMinutes > 30)
+        // {
+        //     await FinishTestAsync(userTestId);
+        //     return;
+        // }
 
         // Check if answer already exists - remove old ones if any (allow re-answer? usually not for this flow but safer to clear)
         var existingAnswers = await _db.UserAnswers
@@ -145,21 +155,31 @@ public class WebTestService : IWebTestService
              _db.UserAnswers.RemoveRange(existingAnswers);
         }
 
-        foreach (var optionId in selectedOptionIds)
+        if (selectedOptionIds.Any())
         {
+            foreach (var optionId in selectedOptionIds)
+            {
+                var answer = new UserAnswer
+                {
+                    UserTestId = userTestId,
+                    QuestionId = questionId,
+                    SelectedOptionId = optionId,
+                    AnsweredAt = DateTime.UtcNow
+                };
+                _db.UserAnswers.Add(answer);
+            }
+        }
+        else
+        {
+            // If no options selected (timeout or skip), record an empty answer to mark question as "answered"
             var answer = new UserAnswer
             {
                 UserTestId = userTestId,
                 QuestionId = questionId,
-                SelectedOptionId = optionId,
+                SelectedOptionId = null, // Null means no option selected
                 AnsweredAt = DateTime.UtcNow
             };
             _db.UserAnswers.Add(answer);
-        }
-        
-        if (!selectedOptionIds.Any())
-        {
-            // TODO: что то сделать?
         }
 
         await _db.SaveChangesAsync();
@@ -223,10 +243,11 @@ public class WebTestService : IWebTestService
         var userTest = await _db.UserTests.FindAsync(userTestId);
         if (userTest == null || userTest.Status != UserTestStatus.Finished)
         {
-             if (userTest?.StartedAt != null && (DateTime.UtcNow - userTest.StartedAt.Value).TotalMinutes > 30)
-             {
-                 await FinishTestAsync(userTestId);
-             }
+             // Removed 30 min check
+             // if (userTest?.StartedAt != null && (DateTime.UtcNow - userTest.StartedAt.Value).TotalMinutes > 30)
+             // {
+             //     await FinishTestAsync(userTestId);
+             // }
         }
     }
 

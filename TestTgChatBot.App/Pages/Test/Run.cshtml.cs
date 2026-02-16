@@ -50,17 +50,16 @@ public class RunModel : PageModel
 
         TestStartedAt = UserTest.StartedAt;
 
-        // Check total time limit
-        if (UserTest.Status == UserTestStatus.Finished || 
-            (UserTest.StartedAt != null && (DateTime.UtcNow - UserTest.StartedAt.Value).TotalMinutes > 30))
+        // Check if test is active
+        if (!UserTest.Test.IsActive && UserTest.Status != UserTestStatus.Finished)
         {
-             if (UserTest.Status != UserTestStatus.Finished)
-             {
-                 await _webTestService.FinishTestAsync(UserTest.Id);
-                 // Reload to get updated status
-                 UserTest = await _db.UserTests.FindAsync(UserTest.Id);
-             }
-             
+             await _webTestService.FinishTestAsync(UserTest.Id);
+             UserTest = await _db.UserTests.FindAsync(UserTest.Id);
+        }
+
+        // Check total time limit (removed 30 min limit, but keeping finished check)
+        if (UserTest.Status == UserTestStatus.Finished)
+        {
              Score = UserTest?.Score;
              TotalQuestions = UserTest?.Test?.Questions?.Count ?? 0;
              CurrentQuestion = null; // Test finished
@@ -71,40 +70,30 @@ public class RunModel : PageModel
              return Page();
         }
 
-        var questions = UserTest.Test.Questions.OrderBy(q => q.Id).ToList();
+        // Randomize questions order based on UserTestId seed
+        // Using a fixed seed (UserTest.Id) ensures the order is random but consistent for the same user session
+        // This prevents questions from jumping around if the user refreshes the page
+        var random = new Random(UserTest.Id);
+        var questions = UserTest.Test.Questions.OrderBy(q => random.Next()).ToList();
         TotalQuestions = questions.Count;
 
         // Find first unanswered question
-        // Note: this simple logic assumes sequential answering. 
-        // If we want random access, we need different logic. 
-        // Requirement "1 minute per question" usually implies sequential flow.
-        
         var answeredIds = UserTest.UserAnswers.Select(ua => ua.QuestionId).ToHashSet();
         
-        // Find the first question that hasn't been answered
         var question = questions.FirstOrDefault(q => !answeredIds.Contains(q.Id));
         
         if (question == null)
         {
             // All answered
             await _webTestService.FinishTestAsync(UserTest.Id);
-            // Redirect to self to show result
             return RedirectToPage();
         }
 
         CurrentQuestion = question;
-        CurrentQuestion = question;
         CurrentQuestionIndex = questions.IndexOf(question);
 
-        if (UserTest.StartedAt.HasValue)
-        {
-            var elapsed = DateTime.UtcNow - UserTest.StartedAt.Value;
-            TotalSecondsRemaining = Math.Max(0, (30 * 60) - elapsed.TotalSeconds);
-        }
-        else
-        {
-            TotalSecondsRemaining = 30 * 60;
-        }
+        // No total time limit displayed
+        TotalSecondsRemaining = 0;
 
         return Page();
     }
